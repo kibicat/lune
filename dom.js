@@ -173,7 +173,11 @@ export function XHT(strings, ...substitutions) {
       /** @type {any} */
       const child = subsChildren[i];
       if (child != "") {
-        children.push("tagName" in child ? child : String(child));
+        children.push(
+          typeof child === "object" && "tagName" in child
+            ? child
+            : String(child),
+        );
       }
     }
   }
