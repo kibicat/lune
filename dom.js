@@ -95,7 +95,7 @@ export class QualifiedName extends String {
  *  @argument {...(string | Node |(string | Node)[])} substitutions
  *  @returns {Element}
  */
-function elementTag(name, attributes, strings, ...substitutions) {
+function makeElement(name, attributes, strings, ...substitutions) {
   const document = this?.document ?? globalThis.document;
   const namespace = name.namespace;
   const element = document.createElementNS(
@@ -148,25 +148,16 @@ function elementTag(name, attributes, strings, ...substitutions) {
 }
 
 /**
- *  @this {?{document: Document}=}
- *  @argument {QualifiedName} name
- *  @argument {({[index: string]: string} | Map<string | QualifiedName, string>)=} attributes
- */
-function namedTag(name, attributes = {}) {
-  return elementTag.bind(this, name, attributes);
-}
-
-/**
- *  Tags a template literal to return an element.
+ *  Used to make tags for a template literal to return an element.
  *
  *  Examples:—
  *
  *  ```js
- *  const divElement = tag("div")()`content`.
- *  const withAttrs = tag("div")({class: "foo"})`content`
- *  const withNamespace = tag(
+ *  const divElement = makeTag("div")`content`.
+ *  const withAttrs = makeTag("div", {class: "foo"})`content`
+ *  const withNamespace = makeTag(
  *    new QualifiedName(Namespace[SVG], "svg")
- *  )()`content`
+ *  )`content`
  *  ```
  *
  *  The content may contain substitutions, which may be used to provide
@@ -174,12 +165,14 @@ function namedTag(name, attributes = {}) {
  *
  * @this {?{document: Document}=}
  * @argument {string | QualifiedName} name
+ * @argument {({[index: string]: string} | Map<string | QualifiedName, string>)=} attributes
  */
-export function tag(name) {
-  return namedTag.bind(
+export function makeTag(name, attributes = {}) {
+  return makeElement.bind(
     this,
     name instanceof QualifiedName
       ? name
       : new QualifiedName(Namespace[XHTML], name),
+    attributes,
   );
 }

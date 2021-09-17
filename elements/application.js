@@ -8,7 +8,7 @@
 //  If a copy of the MPL was not distributed with this file, You can
 //    obtain one at <https://mozilla.org/MPL/2.0/>.
 
-import { Namespace, tag } from "../dom.js";
+import { makeTag, Namespace } from "../dom.js";
 import { XHTML } from "../symbols.js";
 import { STYLE } from "./html.js";
 
@@ -16,11 +16,11 @@ export class LuneApplication extends HTMLElement {
   constructor() {
     super();
     const shadowRoot = this.attachShadow({ mode: "open" });
-    shadowRoot.appendChild(STYLE()`@namespace "${Namespace[XHTML]}";
+    shadowRoot.appendChild(STYLE`@namespace "${Namespace[XHTML]}";
 `);
   }
 }
 
 customElements.define("lune-application", LuneApplication);
 
-export const LUNE_APPLICATION = tag("lune-application");
+export const LUNE_APPLICATION = makeTag.bind(null, "lune-application");

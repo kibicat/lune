@@ -14,7 +14,7 @@ import {
   DOMImplementation,
 } from "./deps.test.js";
 import { NULL, XHTML, XML } from "./symbols.js";
-import { Namespace, QualifiedName, tag } from "./dom.js";
+import { makeTag, Namespace, QualifiedName } from "./dom.js";
 
 const implementation = new DOMImplementation();
 globalThis.document = implementation.createDocument(
@@ -26,9 +26,9 @@ globalThis.document = implementation.createDocument(
 Deno.test({
   name: "element makes empty element",
   fn: () => {
-    const div = tag(
+    const div = makeTag(
       new QualifiedName(Namespace[NULL], "div"),
-    )()``;
+    )``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -41,7 +41,7 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element",
   fn: () => {
-    const div = tag("div")()``;
+    const div = makeTag("div")``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
@@ -54,9 +54,10 @@ Deno.test({
 Deno.test({
   name: "element makes element with attributes",
   fn: () => {
-    const div = tag(
+    const div = makeTag(
       new QualifiedName(Namespace[NULL], "div"),
-    )({ "data-cool": "😎" })``;
+      { "data-cool": "😎" },
+    )``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -70,7 +71,8 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element with namespaced attributes",
   fn: () => {
-    const div = tag("div")(
+    const div = makeTag(
+      "div",
       new Map([
         [new QualifiedName(Namespace[XML], "lang"), "zxx"],
       ]),
@@ -99,11 +101,12 @@ Deno.test({
   name:
     "element makes HTML element with namespaced attributes and text and element content",
   fn: () => {
-    const div = tag("div")(
+    const div = makeTag(
+      "div",
       new Map([
         [new QualifiedName(Namespace[XML], "lang"), "en"],
       ]),
-    )`some ${tag("em")({ class: "COOL" })`cool`} content`;
+    )`some ${makeTag("em", { class: "COOL" })`cool`} content`;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
