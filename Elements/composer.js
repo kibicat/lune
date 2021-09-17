@@ -27,11 +27,13 @@ import {
  *  @this {HTMLTextAreaElement}
  *  @argument {HTMLMeterElement} meter
  *  @argument {HTMLSpanElement} count
+ *  @argument {HTMLButtonElement} submit
  */
-function update(meter, count) {
-  const chars = this.value.length;
+function update(meter, count, submit) {
+  const chars = this.value.length; // TODO: better counting
   meter.value = Math.min(chars, meter.max);
   count.textContent = chars.toString();
+  submit.disabled = chars > meter.max;
 }
 
 export class LuneComposer extends HTMLElement {
@@ -41,20 +43,25 @@ export class LuneComposer extends HTMLElement {
     const textArea = TEXTAREA({
       placeholder: localize`🐈🌑 :: Composer :: Placeholder`,
     })``;
+    const max = 500; // TODO
+    const count = /** @type {HTMLSpanElement} */ (SPAN()`0`);
     const meter = /** @type {HTMLMeterElement} */ (METER({
       value: "0",
       min: "0",
-      max: "500",
-      high: "450",
-    })``);
-    const count = /** @type {HTMLSpanElement} */ (SPAN()`0`);
-    const submit = BUTTON({ type: "button" })`${localize
-      `🐈🌑 :: Composer :: Make Post`}`;
+      low: Math.floor(.8 * max).toString(),
+      high: Math.floor(.95 * max).toString(),
+      max: max.toString(),
+      optimum: Math.floor(.6 * max).toString(),
+      title: "characters",
+    })`${count}\xA0∕ ${max.toString()}`);
+    const submit =
+      /** @type {HTMLButtonElement} */ (BUTTON({ type: "button" })
+        `${localize`🐈🌑 :: Composer :: Make Post`}`);
     textArea.addEventListener(
       "input",
-      update.bind(textArea, meter, count),
+      update.bind(textArea, meter, count, submit),
     );
-    update.call(textArea, meter, count);
+    update.call(textArea, meter, count, submit);
     shadowRoot.append(
       STYLE()`
 details.DRAWER{
@@ -116,11 +123,6 @@ menu{
 menu>li{
   All: Initial;
 }
-div.COUNT{
-  Display: Grid;
-  Grid: Auto-Flow / 1FR Max-Content;
-  Gap: 1CH;
-}
 details.PREVIEW{
   Box-Sizing: Border-Box;
   Margin-Inline-Start: -.5EM;
@@ -142,10 +144,7 @@ details.PREVIEW[open]{
             MENU()`${[
               LI()`${submit}`,
             ]}`,
-            DIV({ class: "COUNT" })`${[
-              meter,
-              SPAN()`${count} ∕ ${meter.max.toString()}`,
-            ]}`,
+            meter,
           ]}`,
           DETAILS({ class: "PREVIEW", open: "" })`${[
             SUMMARY()`${localize`🐈🌑 :: Composer :: Preview`}`,
