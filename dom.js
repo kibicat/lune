@@ -13,11 +13,11 @@ The following are *symbols*, not namespaces.
 Access the appropriate namespace via `Namespace[symbol]`.
 */
 
-export const MathMLNamespace = Symbol("MathML Namespace");
-export const NullNamespace = Symbol("Null Namespace");
-export const SVGNamespace = Symbol("SVG Namespace");
-export const XHTMLNamespace = Symbol("XHTML Namespace");
-export const XMLNamespace = Symbol("XML Namespace");
+export const MATHML = Symbol("math");
+export const NULL = Symbol("");
+export const SVG = Symbol("svg");
+export const XHTML = Symbol("xhtml");
+export const XML = Symbol("xml");
 
 /**
  *  A `String` object with an associated `prefix`.
@@ -37,20 +37,17 @@ export const XMLNamespace = Symbol("XML Namespace");
  *        attempt to *use* this `Namespace`.
  */
 export class Namespace extends String {
-  static [MathMLNamespace] = new Namespace(
+  static [MATHML] = new Namespace(
     "math",
     "http://www.w3.org/1998/Math/MathML",
   );
-  static [NullNamespace] = new Namespace("", "");
-  static [SVGNamespace] = new Namespace(
-    "svg",
-    "http://www.w3.org/2000/svg",
-  );
-  static [XHTMLNamespace] = new Namespace(
+  static [NULL] = new Namespace("", "");
+  static [SVG] = new Namespace("svg", "http://www.w3.org/2000/svg");
+  static [XHTML] = new Namespace(
     "html",
     "http://www.w3.org/1999/xhtml",
   );
-  static [XMLNamespace] = new Namespace(
+  static [XML] = new Namespace(
     "xml",
     "http://www.w3.org/XML/1998/namespace",
   );
@@ -83,68 +80,46 @@ export class Namespaced extends String {
   /**
    *  Makes a new `Namespaced` object.
    *
-   * @argument {string | Namespace} namespace
-   * @argument {any} name
+   * @argument {any} namespace
+   * @argument {any} localName
    */
-  constructor(namespace, name) {
-    super(name);
+  constructor(namespace, localName) {
+    const prefix = namespace instanceof Namespace
+      ? namespace.prefix
+      : "";
+    super(prefix == "" ? localName : `${prefix}:${localName}`);
     /** @readonly */
-    this.namespace = new Namespace(
-      namespace instanceof Namespace ? namespace.prefix : "",
-      namespace,
-    );
+    this.localName = String(localName);
+    /** @readonly */
+    this.namespace = new Namespace(prefix, namespace);
     return Object.freeze(this);
   }
 }
 
 /**
- *  Tags a template literal to return an element.
- *
- *  Examples:—
- *
- *  ```js
- *  const divElement = element`div`.
- *  const withAttrs = element`div${{ class: "foo "}}`
- *  const withText = element`div${{}}content`
- *  const withNamespace = element`${Namespace[SVGNamespace]}svg`
- *  ```
- *
- *  The first substitution after the tag name must provide the
- *    attributes for the element.
- *  Remaining substitutions are included in content, and can be
- *    elements themselves.
- *
- * @this {any}
- * @argument {TemplateStringsArray} strings
- * @argument {[] | [Namespace, object | Map<Namespaced | string, string>, ...(string | Node)[]] | [object | Map<Namespaced | string, string>, ...(string | Node)[]]} substitutions
- * @returns {Element}
+ *  @this {?{document: Document}=}
+ *  @argument {Namespaced} name
+ *  @argument {{[index: string]: string} | Map<string | Namespaced, string>} attributes
+ *  @argument {TemplateStringsArray} strings
+ *  @argument {...(string | Node |(string | Node)[])} substitutions
+ *  @returns {Element}
  */
-export function XHT(strings, ...substitutions) {
+function ElementTag(name, attributes, strings, ...substitutions) {
   const document = this?.document ?? globalThis.document;
-  const namespaced = strings[0] == "";
-  const [namespace, attributes, ...subsChildren] = namespaced
-    ? substitutions
-    : [Namespace[XHTMLNamespace], ...substitutions];
-  const [_, tagName, ...strChildren] = namespaced
-    ? strings.raw
-    : ["", ...strings.raw];
+  const namespace = name.namespace;
   const element = document.createElementNS(
     String(namespace),
-    namespace instanceof Namespace && namespace.prefix
-      ? `${namespace.prefix}:${tagName.trim()}`
-      : tagName.trim(),
+    String(name),
   );
   const attributeEntries = attributes instanceof Map
     ? attributes.entries()
-    : Object.entries(attributes ?? {});
+    : Object.entries(attributes);
   for (const [key, value] of attributeEntries) {
     if (key instanceof Namespaced) {
       const keyNamespace = key.namespace;
       element.setAttributeNS(
         String(keyNamespace),
-        keyNamespace.prefix
-          ? `${keyNamespace.prefix}:${key}`
-          : String(key),
+        String(key),
         value,
       );
     } else {
@@ -155,32 +130,131 @@ export function XHT(strings, ...substitutions) {
   const children = [];
   for (
     let i = 0;
-    i < Math.max(subsChildren.length, strChildren.length);
+    i < Math.max(strings.length, substitutions.length);
     i++
   ) {
-    if (Object.prototype.hasOwnProperty.call(strChildren, i)) {
-      const child = strChildren[i];
+    if (Object.prototype.hasOwnProperty.call(strings, i)) {
+      const child = strings[i];
       if (child != "") {
         children.push(child);
       }
     }
-    if (Object.prototype.hasOwnProperty.call(subsChildren, i)) {
-      //  Typechecking is disabled here because the first child of
-      //    `subsChildren` could be an attributes object if no
-      //    namespace was declared.
-      //  We fudge it by just converting anything without a `tagName`
-      //    to a string.
-      /** @type {any} */
-      const child = subsChildren[i];
-      if (child != "") {
-        children.push(
-          typeof child === "object" && "tagName" in child
-            ? child
-            : String(child),
-        );
+    if (Object.prototype.hasOwnProperty.call(substitutions, i)) {
+      const child = substitutions[i];
+      if (Array.isArray(child)) {
+        for (const subChild of child) {
+          if (subChild != "") {
+            children.push(subChild);
+          }
+        }
+      } else if (child != "") {
+        children.push(child);
       }
     }
   }
   element.append(...children);
   return element;
 }
+
+/**
+ *  @this {?{document: Document}=}
+ *  @argument {Namespaced} name
+ *  @argument {({[index: string]: string} | Map<string | Namespaced, string>)=} attributes
+ */
+function NamedXHT(name, attributes = {}) {
+  return ElementTag.bind(this, name, attributes);
+}
+
+/**
+ *  Tags a template literal to return an element.
+ *
+ *  Examples:—
+ *
+ *  ```js
+ *  const divElement = XHT("div")()`content`.
+ *  const withAttrs = XHT("div")({class: "foo"})`content`
+ *  const withNamespace = XHT("svg", Namespace[SVG])()`content`
+ *  ```
+ *
+ *  The content may contain substitutions, which may be used to provide
+ *    child elements.
+ *
+ * @this {?{document: Document}=}
+ * @argument {string} localName
+ * @argument {?Namespace=} namespace
+ */
+export function XHT(localName, namespace = Namespace[XHTML]) {
+  return NamedXHT.bind(
+    this,
+    new Namespaced(
+      namespace == null ? Namespace[NULL] : namespace,
+      localName,
+    ),
+  );
+}
+
+export const A = XHT("a");
+export const ABBR = XHT("abbr");
+export const ADDRESS = XHT("address");
+export const ARTICLE = XHT("article");
+export const ASIDE = XHT("aside");
+export const AUDIO = XHT("audio");
+export const B = XHT("b");
+export const BDI = XHT("bdi");
+export const BDO = XHT("bdo");
+export const BLOCKQUOTE = XHT("blockquote");
+export const BR = XHT("br");
+export const BUTTON = XHT("button");
+export const CITE = XHT("cite");
+export const CODE = XHT("code");
+export const DATA = XHT("data");
+export const DD = XHT("dd");
+export const DEL = XHT("del");
+export const DETAILS = XHT("details");
+export const DFN = XHT("dfn");
+export const DIV = XHT("div");
+export const DL = XHT("dl");
+export const DT = XHT("dt");
+export const EM = XHT("em");
+export const FIGCAPTION = XHT("figcaption");
+export const FIGURE = XHT("figure");
+export const FOOTER = XHT("footer");
+export const H1 = XHT("h1");
+export const HEADER = XHT("header");
+export const I = XHT("i");
+export const IFRAME = XHT("iframe");
+export const IMG = XHT("img");
+export const INPUT = XHT("input");
+export const INS = XHT("ins");
+export const KBD = XHT("kbd");
+export const LABEL = XHT("label");
+export const LI = XHT("li");
+export const MARK = XHT("mark");
+export const MENU = XHT("menu");
+export const NAV = XHT("nav");
+export const OL = XHT("ol");
+export const OPTGROUP = XHT("optgroup");
+export const OPTION = XHT("option");
+export const OUTPUT = XHT("output");
+export const P = XHT("p");
+export const PICTURE = XHT("picture");
+export const PRE = XHT("pre");
+export const Q = XHT("q");
+export const S = XHT("s");
+export const SAMP = XHT("samp");
+export const SECTION = XHT("section");
+export const SELECT = XHT("select");
+export const SMALL = XHT("small");
+export const SOURCE = XHT("source");
+export const SPAN = XHT("span");
+export const STRONG = XHT("strong");
+export const STYLE = XHT("style");
+export const SUMMARY = XHT("summary");
+export const TEXTAREA = XHT("textarea");
+export const TIME = XHT("time");
+export const TRACK = XHT("track");
+export const U = XHT("u");
+export const UL = XHT("ul");
+export const VAR = XHT("var");
+export const VIDEO = XHT("video");
+export const WBR = XHT("wbr");

@@ -13,18 +13,11 @@ import {
   assertEquals,
   DOMImplementation,
 } from "./deps.test.js";
-import {
-  Namespace,
-  Namespaced,
-  NullNamespace,
-  XHT,
-  XHTMLNamespace,
-  XMLNamespace,
-} from "./dom.js";
+import { Namespace, Namespaced, XHT, XHTML, XML } from "./dom.js";
 
 const implementation = new DOMImplementation();
 globalThis.document = implementation.createDocument(
-  Namespace[XHTMLNamespace],
+  Namespace[XHTML],
   "html",
   null,
 );
@@ -32,7 +25,7 @@ globalThis.document = implementation.createDocument(
 Deno.test({
   name: "element makes empty element",
   fn: () => {
-    const div = XHT`${Namespace[NullNamespace]}div`;
+    const div = XHT("div", null)()``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -45,11 +38,11 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element",
   fn: () => {
-    const div = XHT`div`;
+    const div = XHT("div")()``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
-    assertEquals(div.namespaceURI, String(Namespace[XHTMLNamespace]));
+    assertEquals(div.namespaceURI, String(Namespace[XHTML]));
     assert(!div.hasChildNodes());
     assertEquals(div.attributes.length, 0);
   },
@@ -58,9 +51,7 @@ Deno.test({
 Deno.test({
   name: "element makes element with attributes",
   fn: () => {
-    const div = XHT`${Namespace[NullNamespace]}div${{
-      "data-cool": "😎",
-    }}`;
+    const div = XHT("div", null)({ "data-cool": "😎" })``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -74,24 +65,26 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element with namespaced attributes",
   fn: () => {
-    const div = XHT`div${new Map([
-      [new Namespaced(Namespace[XMLNamespace], "lang"), "zxx"],
-    ])}`;
+    const div = XHT("div")(
+      new Map([
+        [new Namespaced(Namespace[XML], "lang"), "zxx"],
+      ]),
+    )``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
-    assertEquals(div.namespaceURI, String(Namespace[XHTMLNamespace]));
+    assertEquals(div.namespaceURI, String(Namespace[XHTML]));
     assert(!div.hasChildNodes());
     assertEquals(div.attributes.length, 1);
     assertEquals(div.attributes[0].nodeName, "xml:lang");
     assertEquals(div.attributes[0].localName, "lang");
     assertEquals(
       div.attributes[0].namespaceURI,
-      String(Namespace[XMLNamespace]),
+      String(Namespace[XML]),
     );
     assertEquals(div.attributes[0].nodeValue, "zxx");
     assertEquals(
-      div.getAttributeNS(String(Namespace[XMLNamespace]), "lang"),
+      div.getAttributeNS(String(Namespace[XML]), "lang"),
       "zxx",
     );
   },
@@ -101,13 +94,15 @@ Deno.test({
   name:
     "element makes HTML element with namespaced attributes and text and element content",
   fn: () => {
-    const div = XHT`div${new Map([
-      [new Namespaced(Namespace[XMLNamespace], "lang"), "en"],
-    ])}some ${XHT`em${{ class: "COOL" }}cool`} content`;
+    const div = XHT("div")(
+      new Map([
+        [new Namespaced(Namespace[XML], "lang"), "en"],
+      ]),
+    )`some ${XHT("em")({ class: "COOL" })`cool`} content`;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
-    assertEquals(div.namespaceURI, String(Namespace[XHTMLNamespace]));
+    assertEquals(div.namespaceURI, String(Namespace[XHTML]));
     assertEquals(div.childNodes.length, 3);
     assertEquals(div.childNodes[0].nodeType, 3);
     assertEquals(div.childNodes[0].nodeValue, "some ");
@@ -115,7 +110,7 @@ Deno.test({
     assertEquals(em.nodeType, 1);
     assertEquals(em.nodeName, "html:em");
     assertEquals(em.localName, "em");
-    assertEquals(em.namespaceURI, String(Namespace[XHTMLNamespace]));
+    assertEquals(em.namespaceURI, String(Namespace[XHTML]));
     assertEquals(em.childNodes.length, 1);
     assertEquals(em.childNodes[0].nodeType, 3);
     assertEquals(em.childNodes[0].nodeValue, "cool");
@@ -132,11 +127,11 @@ Deno.test({
     assertEquals(div.attributes[0].localName, "lang");
     assertEquals(
       div.attributes[0].namespaceURI,
-      String(Namespace[XMLNamespace]),
+      String(Namespace[XML]),
     );
     assertEquals(div.attributes[0].nodeValue, "en");
     assertEquals(
-      div.getAttributeNS(String(Namespace[XMLNamespace]), "lang"),
+      div.getAttributeNS(String(Namespace[XML]), "lang"),
       "en",
     );
   },
