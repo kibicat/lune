@@ -1,4 +1,4 @@
-//  🐈🌑 lune :: elements/html.js
+//  🐈🌑 lune :: Elements/html.js
 //  ===================================================================
 //
 //  Copyright © 2021 Margaret KIBI.
@@ -48,6 +48,7 @@ export const LABEL = makeTag.bind(null, "label");
 export const LI = makeTag.bind(null, "li");
 export const MARK = makeTag.bind(null, "mark");
 export const MENU = makeTag.bind(null, "menu");
+export const METER = makeTag.bind(null, "meter");
 export const NAV = makeTag.bind(null, "nav");
 export const OL = makeTag.bind(null, "ol");
 export const OPTGROUP = makeTag.bind(null, "optgroup");

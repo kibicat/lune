@@ -32,6 +32,18 @@ Object.getPrototypeOf(
   }
 };
 
+/**
+ *  “Polyfills” for custom elements:
+ */
+globalThis.HTMLElement = /** @type {typeof HTMLElement} */ (
+  /** @type {unknown} */ (class HTMLElement {})
+);
+globalThis.customElements = /** @type {CustomElementRegistry} */ (
+  /** @type {unknown} */ ({
+    define: () => {},
+  })
+);
+
 export { DOMImplementation, DOMParser, XMLSerializer };
 
 export {

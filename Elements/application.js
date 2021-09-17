@@ -1,4 +1,4 @@
-//  🐈🌑 lune :: elements/application.js
+//  🐈🌑 lune :: Elements/application.js
 //  ===================================================================
 //
 //  Copyright © 2021 Margaret KIBI.
@@ -8,16 +8,26 @@
 //  If a copy of the MPL was not distributed with this file, You can
 //    obtain one at <https://mozilla.org/MPL/2.0/>.
 
-import { makeTag, Namespace } from "../dom.js";
-import { XHTML } from "../symbols.js";
+import { makeTag } from "../dom.js";
 import { STYLE } from "./html.js";
+import { LUNE_COMPOSER } from "./composer.js";
 
 export class LuneApplication extends HTMLElement {
   constructor() {
     super();
     const shadowRoot = this.attachShadow({ mode: "open" });
-    shadowRoot.appendChild(STYLE()`@namespace "${Namespace[XHTML]}";
-`);
+    shadowRoot.append(
+      STYLE()`
+:host{
+  Position: Absolute;
+  Inset-Block-Start: 0;
+  Inset-Block-End: 0;
+  Inset-Inline-Start: 0;
+  Inset-Inline-End: 0;
+}
+`,
+      LUNE_COMPOSER()``,
+    );
   }
 }
 

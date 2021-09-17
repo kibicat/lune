@@ -153,11 +153,11 @@ function makeElement(name, attributes, strings, ...substitutions) {
  *  Examples:—
  *
  *  ```js
- *  const divElement = makeTag("div")`content`.
- *  const withAttrs = makeTag("div", {class: "foo"})`content`
+ *  const divElement = makeTag("div")`content`;
+ *  const withAttrs = makeTag("div", {class: "foo"})`content`;
  *  const withNamespace = makeTag(
- *    new QualifiedName(Namespace[SVG], "svg")
- *  )`content`
+ *    new QualifiedName(Namespace[SVG], "svg"),
+ *  )`content`;
  *  ```
  *
  *  The content may contain substitutions, which may be used to provide
