@@ -16,7 +16,7 @@ export class LuneApplication extends HTMLElement {
   constructor() {
     super();
     const shadowRoot = this.attachShadow({ mode: "open" });
-    shadowRoot.appendChild(STYLE`@namespace "${Namespace[XHTML]}";
+    shadowRoot.appendChild(STYLE()`@namespace "${Namespace[XHTML]}";
 `);
   }
 }
