@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "jsx": "preserve",
+    "lib": ["deno.ns"],
+    "strict": true
+  },
+  "fmt": {
+    "options": { "lineWidth": 71 }
+  }
+}
