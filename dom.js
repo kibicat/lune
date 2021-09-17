@@ -8,16 +8,7 @@
 //  If a copy of the MPL was not distributed with this file, You can
 //    obtain one at <https://mozilla.org/MPL/2.0/>.
 
-/*
-The following are *symbols*, not namespaces.
-Access the appropriate namespace via `Namespace[symbol]`.
-*/
-
-export const MATHML = Symbol("math");
-export const NULL = Symbol("");
-export const SVG = Symbol("svg");
-export const XHTML = Symbol("xhtml");
-export const XML = Symbol("xml");
+import { MATHML, NULL, SVG, XHTML, XML } from "./symbols.js";
 
 /**
  *  A `String` object with an associated `prefix`.
@@ -76,9 +67,9 @@ export class Namespace extends String {
  *   +  The value of `namespace` *should be* a `Namespace`.
  *      It will attempt to create one otherwise.
  */
-export class Namespaced extends String {
+export class QualifiedName extends String {
   /**
-   *  Makes a new `Namespaced` object.
+   *  Makes a new `QualifiedName` object.
    *
    * @argument {any} namespace
    * @argument {any} localName
@@ -98,13 +89,13 @@ export class Namespaced extends String {
 
 /**
  *  @this {?{document: Document}=}
- *  @argument {Namespaced} name
- *  @argument {{[index: string]: string} | Map<string | Namespaced, string>} attributes
+ *  @argument {QualifiedName} name
+ *  @argument {{[index: string]: string} | Map<string | QualifiedName, string>} attributes
  *  @argument {TemplateStringsArray} strings
  *  @argument {...(string | Node |(string | Node)[])} substitutions
  *  @returns {Element}
  */
-function ElementTag(name, attributes, strings, ...substitutions) {
+function elementTag(name, attributes, strings, ...substitutions) {
   const document = this?.document ?? globalThis.document;
   const namespace = name.namespace;
   const element = document.createElementNS(
@@ -115,7 +106,7 @@ function ElementTag(name, attributes, strings, ...substitutions) {
     ? attributes.entries()
     : Object.entries(attributes);
   for (const [key, value] of attributeEntries) {
-    if (key instanceof Namespaced) {
+    if (key instanceof QualifiedName) {
       const keyNamespace = key.namespace;
       element.setAttributeNS(
         String(keyNamespace),
@@ -158,11 +149,11 @@ function ElementTag(name, attributes, strings, ...substitutions) {
 
 /**
  *  @this {?{document: Document}=}
- *  @argument {Namespaced} name
- *  @argument {({[index: string]: string} | Map<string | Namespaced, string>)=} attributes
+ *  @argument {QualifiedName} name
+ *  @argument {({[index: string]: string} | Map<string | QualifiedName, string>)=} attributes
  */
-function NamedXHT(name, attributes = {}) {
-  return ElementTag.bind(this, name, attributes);
+function namedTag(name, attributes = {}) {
+  return elementTag.bind(this, name, attributes);
 }
 
 /**
@@ -171,90 +162,24 @@ function NamedXHT(name, attributes = {}) {
  *  Examples:—
  *
  *  ```js
- *  const divElement = XHT("div")()`content`.
- *  const withAttrs = XHT("div")({class: "foo"})`content`
- *  const withNamespace = XHT("svg", Namespace[SVG])()`content`
+ *  const divElement = tag("div")()`content`.
+ *  const withAttrs = tag("div")({class: "foo"})`content`
+ *  const withNamespace = tag(
+ *    new QualifiedName(Namespace[SVG], "svg")
+ *  )()`content`
  *  ```
  *
  *  The content may contain substitutions, which may be used to provide
  *    child elements.
  *
  * @this {?{document: Document}=}
- * @argument {string} localName
- * @argument {?Namespace=} namespace
+ * @argument {string | QualifiedName} name
  */
-export function XHT(localName, namespace = Namespace[XHTML]) {
-  return NamedXHT.bind(
+export function tag(name) {
+  return namedTag.bind(
     this,
-    new Namespaced(
-      namespace == null ? Namespace[NULL] : namespace,
-      localName,
-    ),
+    name instanceof QualifiedName
+      ? name
+      : new QualifiedName(Namespace[XHTML], name),
   );
 }
-
-export const A = XHT("a");
-export const ABBR = XHT("abbr");
-export const ADDRESS = XHT("address");
-export const ARTICLE = XHT("article");
-export const ASIDE = XHT("aside");
-export const AUDIO = XHT("audio");
-export const B = XHT("b");
-export const BDI = XHT("bdi");
-export const BDO = XHT("bdo");
-export const BLOCKQUOTE = XHT("blockquote");
-export const BR = XHT("br");
-export const BUTTON = XHT("button");
-export const CITE = XHT("cite");
-export const CODE = XHT("code");
-export const DATA = XHT("data");
-export const DD = XHT("dd");
-export const DEL = XHT("del");
-export const DETAILS = XHT("details");
-export const DFN = XHT("dfn");
-export const DIV = XHT("div");
-export const DL = XHT("dl");
-export const DT = XHT("dt");
-export const EM = XHT("em");
-export const FIGCAPTION = XHT("figcaption");
-export const FIGURE = XHT("figure");
-export const FOOTER = XHT("footer");
-export const H1 = XHT("h1");
-export const HEADER = XHT("header");
-export const I = XHT("i");
-export const IFRAME = XHT("iframe");
-export const IMG = XHT("img");
-export const INPUT = XHT("input");
-export const INS = XHT("ins");
-export const KBD = XHT("kbd");
-export const LABEL = XHT("label");
-export const LI = XHT("li");
-export const MARK = XHT("mark");
-export const MENU = XHT("menu");
-export const NAV = XHT("nav");
-export const OL = XHT("ol");
-export const OPTGROUP = XHT("optgroup");
-export const OPTION = XHT("option");
-export const OUTPUT = XHT("output");
-export const P = XHT("p");
-export const PICTURE = XHT("picture");
-export const PRE = XHT("pre");
-export const Q = XHT("q");
-export const S = XHT("s");
-export const SAMP = XHT("samp");
-export const SECTION = XHT("section");
-export const SELECT = XHT("select");
-export const SMALL = XHT("small");
-export const SOURCE = XHT("source");
-export const SPAN = XHT("span");
-export const STRONG = XHT("strong");
-export const STYLE = XHT("style");
-export const SUMMARY = XHT("summary");
-export const TEXTAREA = XHT("textarea");
-export const TIME = XHT("time");
-export const TRACK = XHT("track");
-export const U = XHT("u");
-export const UL = XHT("ul");
-export const VAR = XHT("var");
-export const VIDEO = XHT("video");
-export const WBR = XHT("wbr");

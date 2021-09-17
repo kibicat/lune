@@ -1,4 +1,4 @@
-//  🐈🌑 lune :: application.js
+//  🐈🌑 lune :: elements/application.js
 //  ===================================================================
 //
 //  Copyright © 2021 Margaret KIBI.
@@ -8,7 +8,9 @@
 //  If a copy of the MPL was not distributed with this file, You can
 //    obtain one at <https://mozilla.org/MPL/2.0/>.
 
-import { Namespace, STYLE, XHT, XHTML } from "../dom.js";
+import { Namespace, tag } from "../dom.js";
+import { XHTML } from "../symbols.js";
+import { STYLE } from "./html.js";
 
 export class LuneApplication extends HTMLElement {
   constructor() {
@@ -21,4 +23,4 @@ export class LuneApplication extends HTMLElement {
 
 customElements.define("lune-application", LuneApplication);
 
-export const LUNE_APPLICATION = XHT("lune-application");
+export const LUNE_APPLICATION = tag("lune-application");

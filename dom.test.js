@@ -13,7 +13,8 @@ import {
   assertEquals,
   DOMImplementation,
 } from "./deps.test.js";
-import { Namespace, Namespaced, XHT, XHTML, XML } from "./dom.js";
+import { NULL, XHTML, XML } from "./symbols.js";
+import { Namespace, QualifiedName, tag } from "./dom.js";
 
 const implementation = new DOMImplementation();
 globalThis.document = implementation.createDocument(
@@ -25,7 +26,9 @@ globalThis.document = implementation.createDocument(
 Deno.test({
   name: "element makes empty element",
   fn: () => {
-    const div = XHT("div", null)()``;
+    const div = tag(
+      new QualifiedName(Namespace[NULL], "div"),
+    )()``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -38,7 +41,7 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element",
   fn: () => {
-    const div = XHT("div")()``;
+    const div = tag("div")()``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
@@ -51,7 +54,9 @@ Deno.test({
 Deno.test({
   name: "element makes element with attributes",
   fn: () => {
-    const div = XHT("div", null)({ "data-cool": "😎" })``;
+    const div = tag(
+      new QualifiedName(Namespace[NULL], "div"),
+    )({ "data-cool": "😎" })``;
     assertEquals(div.nodeType, 1);
     assertEquals(div.tagName, "div");
     assertEquals(div.localName, "div");
@@ -65,9 +70,9 @@ Deno.test({
 Deno.test({
   name: "element makes HTML element with namespaced attributes",
   fn: () => {
-    const div = XHT("div")(
+    const div = tag("div")(
       new Map([
-        [new Namespaced(Namespace[XML], "lang"), "zxx"],
+        [new QualifiedName(Namespace[XML], "lang"), "zxx"],
       ]),
     )``;
     assertEquals(div.nodeType, 1);
@@ -94,11 +99,11 @@ Deno.test({
   name:
     "element makes HTML element with namespaced attributes and text and element content",
   fn: () => {
-    const div = XHT("div")(
+    const div = tag("div")(
       new Map([
-        [new Namespaced(Namespace[XML], "lang"), "en"],
+        [new QualifiedName(Namespace[XML], "lang"), "en"],
       ]),
-    )`some ${XHT("em")({ class: "COOL" })`cool`} content`;
+    )`some ${tag("em")({ class: "COOL" })`cool`} content`;
     assertEquals(div.nodeType, 1);
     assertEquals(div.nodeName, "html:div");
     assertEquals(div.localName, "div");
