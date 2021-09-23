@@ -6,6 +6,8 @@
     "strict": true
   },
   "fmt": {
-    "options": { "lineWidth": 71 }
+    "options": {
+      "lineWidth": 71
+    }
   }
 }
