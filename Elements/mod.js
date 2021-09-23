@@ -1,4 +1,4 @@
-//  🐈🌑 lune :: Elements/mod.test.js
+//  🐈🌑 lune :: Elements/mod.js
 //  ===================================================================
 //
 //  Copyright © 2021 Margaret KIBI.
@@ -8,11 +8,5 @@
 //  If a copy of the MPL was not distributed with this file, You can
 //    obtain one at <https://mozilla.org/MPL/2.0/>.
 
-import {} from "../deps.test.js";
-
-/*
-There aren’t actually any tests for these beyond typechecking.
-*/
-
-import "./mod.js";
-import "./html.js";
+export { LuneApplication } from "./application.js";
+export { LuneComposer } from "./composer.js";
